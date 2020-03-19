@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Create new lecture</h2>
+<form action="/createlecture" method="POST">
+  <label for ="lecture_name">Lecture Name:</label>
+  <input type="text" name="lecture_name" id=lecture_name>
+  <br>
+  <label for="lecture_Date"> Lecture Date:</label>
+  <input type="date" name="lecture_Date" id=lecture_Date placeholder="lecture_Date">
+  <br>
+  <label for="lecutre_Time"> Lecture Time:</label>
+  <input type="time" name="lecutre_Time" id=lecutre_Time placeholder="lecture_Time">
+  <br>
+  <label for="staff_ID"> Staff ID :</label>
+  <input type="text" name="staff_ID" id=staff_ID value="{{session.userID}}" readonly>
+  <br>
+  <input type="submit" type="submit" value="Create Lecture">
+</form>
+
+{% endblock %}
