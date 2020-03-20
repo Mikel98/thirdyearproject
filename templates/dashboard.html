@@ -1,4 +1,20 @@
 {% extends "base.html" %}
 {% block content %}
 <h2> Dashboard for {{session.username}}</h2>
+<table class="table table-striped">
+    <tr>
+      <th>Lecture Name</th>
+      <th>Lecture Date</th>
+      <th>Lecture Time</th>
+    </tr>
+    {% for lectures in data %}
+      <tr>
+        <td>{{lectures[0]}}</td>
+        <td>{{lectures[1]}}</td>
+        <td>{{lectures[2]}}</td>
+        <td><a href="editlecture/{{lectures[4]}}" class="btn btn-default pullright">Edit</a></td>
+      </tr>
+    {% endfor %}
+  </table>
+
 {% endblock %}
