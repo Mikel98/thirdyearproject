@@ -1,14 +1,11 @@
 {% extends "base.html" %}
 {% block content %}
-<h2> Dashboard for {{session.username}}</h2>
+<h2> Dashboard for {{session.accounttype}}</h2>
 <table class="table table-striped">
     <tr>
       <th>Lecture Name</th>
       <th>Lecture Date</th>
       <th>Lecture Time</th>
-      <th></th>
-      <th></th>
-      <th></th>
     </tr>
     {% for lectures in data %}
       <tr>
@@ -16,13 +13,8 @@
         <td>{{lectures[1]}}</td>
         <td>{{lectures[2]}}</td>
         <td><a href="editlecture/{{lectures[4]}}" class="btn btn-default pullright">Edit</a></td>
-        <td> <form action="{{url_for('deletelecture', id=lectures.id)}}" method="post">
-            <input type="hidden" name="_method" value="DELETE">
-            <input type="submit" value="Delete" class="btn btn-danger">
-          </form>
-        </td>
-        <td><a href="lecturecodes/{{lectures[4]}}" class="btn btn-default pullright">Display Codes</a></td>
       </tr>
     {% endfor %}
   </table>
+
 {% endblock %}
