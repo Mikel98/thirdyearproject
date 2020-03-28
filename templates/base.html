@@ -4,29 +4,78 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{title}} - UEA ATTENDANCE AND LECTURE FEEDBACK</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
-  <script src="jquery.min.js"></script>
-  <script src="qrcode.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg py-3 navbar-dark bg-dark shadow-sm">
-  {% if 'userID' in session %}
-  <a href="/">Homepage</a>
-  <a href="/newlecture">New Lecture</a>
-  <a href="/feedback">Feedback</a>
-  <a href="/viewfeedback">View Feedback</a>
-  <a href="/logout">Logout</a>
+<nav class="navbar navbar-expand-lg py-3 navbar-dark bg-dark shadow-sm" data-toggle="collapse">
+  <div class="navbar-collapse collapse w-100 order-1 order-md-0 dual-collapse2">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item active">
+  {% if 'loggedInStaff' in session %}
+  <li><a class="nav-link" href="/">Dashboard</a></li>
+  <li><a class="nav-link" href="/newlecture">New Lecture</a></li>
+  <li><a class="nav-link" href="/viewfeedback">View Feedback</a></li>
+</li>
+</ul>
+</div>
+<div class="navbar-collapse collapse w-100 order-3 dual-collapse2">
+        <ul class="navbar-nav ml-auto">
+            <li class="nav-item">
+  <li><a class="nav-link" href="/staffupdatedetails">Update Details</a></li>
+  <li><a class="nav-link" href="/logout">Logout</a></li>
+</li>
+</ul>
+</div>
+
+  {% elif 'loggedInStudent' in session %}
+  <div class="navbar-collapse collapse w-100 order-3 dual-collapse2">
+        <ul class="navbar-nav ml-auto">
+            <li class="nav-item">
+  <li><a class="nav-link" href="/">Dashboard</a></li>
+  </li>
+  </ul>
+  </div>
+  <div class="navbar-collapse collapse w-100 order-3 dual-collapse2">
+          <ul class="navbar-nav ml-auto">
+              <li class="nav-item">
+    <li><a class="nav-link" href="/staffupdatedetails">Update Details</a></li>
+    <li><a class="nav-link" href="/logout">Logout</a></li>
+  </li>
+  </ul>
+  </div>
+  {% elif 'loggedInAdmin' in session%}
+  <div class="navbar-collapse collapse w-100 order-3 dual-collapse2">
+        <ul class="navbar-nav ml-auto">
+            <li class="nav-item">
+  <li><a class="nav-link" href="/">Dashboad</a></li>
+  <li><a class="nav-link" href="/login">Manage Accounts</a></li>
+</li>
+</ul>
+</div>
+<div class="navbar-collapse collapse w-100 order-3 dual-collapse2">
+        <ul class="navbar-nav ml-auto">
+            <li class="nav-item">
+  <li><a class="nav-link" href="/staffupdatedetails">Update Details</a></li>
+  <li><a class="nav-link" href="/logout">Logout</a></li>
+</li>
+</ul>
+</div>
   {% else %}
-  <a href="/">Homepage</a>
-  <a href="/login">Login</a>
-  <a href="/register">Register</a>
-  <a href="/qrcode">QRCODE</a>
-  {% endif %}
+  <div class="navbar-collapse collapse w-100 order-3 dual-collapse2">
+        <ul class="navbar-nav ml-auto">
+            <li class="nav-item">
+  <li><a class="nav-link" href="/">Homepage</a></li>
+  <li><a class="nav-link" href="/lecturefeedback">Lecture Feedback</a></li>
+</li>
+</ul>
+</div>
+{% endif %}
 </nav>
 <div class="container">
   {% include 'includes/messages.html' %}
 </div>
-<h1>UEA Attendance and lecutre feedback system</h1>
     {% block content %}
     {% endblock %}
     <!-- Optional JavaScript -->

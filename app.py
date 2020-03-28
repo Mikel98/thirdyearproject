@@ -8,8 +8,13 @@ from flask_qrcode import QRcode
 from passlib.hash import sha256_crypt
 from forms import *
 
+global lecture_IDENTITY
 def randomString(stringLength=20):
     """Generate a random string of fixed length """
+    letters = string.ascii_lowercase
+    return ''.join(random.choice(letters) for i in range(stringLength))
+
+def randomLectureCode(stringLength=4):
     letters = string.ascii_lowercase
     return ''.join(random.choice(letters) for i in range(stringLength))
 
@@ -19,7 +24,6 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:michael@localhost
 app.config['SECRET_KEY'] = randomString()
 app.debug=True
 QRcode(app)
-
 connection = psycopg2.connect(user="postgres",password="michael",host="localhost",port="5432",database="uea_attendance")
 
 @app.route('/')
@@ -75,21 +79,23 @@ def loginattempt():
             error = "Invalid Credentials , Try Again"
             return render_template ("login.html", title='Login', form=LoginForm(), error = error)
         elif found[3] == 'admin':
-            session['loggedIn'] = True
+            session['loggedInAdmin'] = True
             session['userID'] = found[0]
             session['username'] = username
             session['accounttype'] = 'ADMIN'
             flash('You are now logged in', 'success')
             return redirect(url_for('admin'))
         elif found[3] == 'staff':
-            session['loggedIn'] = True
+            session['loggedInStaff'] = True
             session['userID'] = found[0]
             session['username'] = username
             session['accounttype'] = 'STAFF'
             flash('You are now logged in', 'success')
             return redirect(url_for('dashboard'))
         else:
+            session['loggedInStudent'] = True
             session['userID'] = found[0]
+            session['username'] = username
             session['accounttype'] = 'STUDENT'
             connection.close()
             flash('You are now logged in', 'success')
@@ -111,18 +117,44 @@ def dashboard():
 def admin():
     return render_template('dashboard.html', title="ADMIN Dashboard")
 
+@app.route('/staffupdatedetails', methods=['GET'])
+def staffupdatedetails():
+        connection = psycopg2.connect(user="postgres",password="michael",host="localhost",port="5432",database="uea_attendance")
+        cursor = connection.cursor()
+        # Get staff member by id
+        cursor.execute("SELECT * FROM ueastaff WHERE staff_id = %s", (session['userID'],))
+        found = cursor.fetchone()
+            # Get form
+        form = StaffPersonalForm()
+            # Populate lecture form fields
+        form.forename.data = found[1]
+        form.surname.data = found[2]
+        form.email.data = found[3]
+        form.faculty.data = found[4]
+        connection.close()
+        return render_template('updatedetails.html', title='Update Details', form=form)
+
+@app.route('/staffdetailspush', methods=['POST'])
+def detailsupdateattempt():
+    connection = psycopg2.connect(user="postgres",password="michael",host="localhost",port="5432",database="uea_attendance")
+    cursor = connection.cursor()
+    form = StaffPersonalForm(request.form)
+    if request.method== 'POST' and form.validate():
+        cursor = connection.cursor()
+        forename= form.forename.data
+        surname= form.surname.data
+        email= form.email.data
+        faculty= form.faculty.data
+        cursor.execute("UPDATE ueastaff SET staff_forename=%s, staff_surname=%s, staff_email=%s, staff_faculty=%s WHERE staff_id=%s",(forename,surname,email, faculty,session['userID']))
+        connection.commit()
+        connection.close()
+        flash('Details have been updated', 'success')
+        return redirect(url_for('dashboard'))
+
 @app.route('/newlecture')
 def newlecture():
     form = NewLectureForm()
     return render_template('newlecture.html', title='New Lecture', form=form)
-
-@app.route('/feedback')
-def feedback():
-    return render_template('feedback.html', title='Feedback')
-
-@app.route('/viewfeedback')
-def viewfeedback():
-    return render_template('viewfeedback.html', title='View Feedback')
 
 @app.route('/createlecture', methods=['POST'])
 def createlecture():
@@ -133,8 +165,9 @@ def createlecture():
         lecturename= form.lecturename.data
         lecturedate= form.lecturedate.data
         lecturetime= form.lecturetime.data
-        cursor.execute("INSERT INTO uealectures (lecture_name, lecturedate, lecturetime, staff_id) VALUES (%s , %s, %s, %s)",
-        (lecturename,lecturedate,lecturetime,session['userID']))
+        lecturecode= randomLectureCode()
+        cursor.execute("INSERT INTO uealectures (lecture_name, lecturedate, lecturetime, staff_id,lecture_code) VALUES (%s , %s, %s, %s, %s)",
+        (lecturename,lecturedate,lecturetime,session['userID'],lecturecode))
         connection.commit()
         connection.close()
         flash('You have sucessfully added the lecture', 'success')
@@ -154,11 +187,12 @@ def edit_lecture(id):
 
     lecture = cursor.fetchone()
         # Get form
-    form = NewLectureForm(request.form)
+    form = UpdateLectureForm(request.form)
         # Populate lecture form fields
     form.lecturename.data = lecture[0]
     form.lecturedate.data = lecture[1]
     form.lecturetime.data = lecture[2]
+    form.lecturecode.data = lecture[5]
 
     if request.method == 'POST' and form.validate():
         cursor = connection.cursor()
@@ -173,7 +207,6 @@ def edit_lecture(id):
 
     return render_template ('editlecture.html', form=form)
 
-
 @app.route('/deletelecture/<string:id>', methods=['POST'])
 def deletelecture(id):
     connection = psycopg2.connect(user="postgres",password="michael",host="localhost",port="5432",database="uea_attendance")
@@ -185,21 +218,87 @@ def deletelecture(id):
     flash('Lecture Deleted', 'success')
     return redirect(url_for('dashboard'))
 
-'''@app.route('/registerattendance/<string:id>', methods=['GET', 'POST'])
-def registerattendance(id):'''
+@app.route('/registerattendance/<string:id>', methods=['GET', 'POST'])
+def registerattendance(id):
+    connection = psycopg2.connect(user="postgres",password="michael",host="localhost",port="5432",database="uea_attendance")
+    cur = connection.cursor()
+    # Delete Lecture by id
+    flash('Lecture Deleted', 'success')
+    return render_template("dashboard.html", title="REG DASH")
 
 @app.route('/lecturecodes/<string:id>', methods= ['GET'])
 def lecturecodes(id):
+    global lecture_IDENTITY
     connection = psycopg2.connect(user="postgres",password="michael",host="localhost",port="5432",database="uea_attendance")
     # Create cursor
     cursor = connection.cursor()
     # Get lecture by id
     result = cursor.execute("SELECT * FROM uealectures WHERE lecture_id = %s", [id])
     lecture = cursor.fetchone()
-    lecid = lecture[4]
+    lectureid = lecture[4]
+    lecture_IDENTITY = lecture[4]
+    return render_template('lecturecodes.html', title='Lecture Codes', data=lecture)
 
-    return render_template('lecturecodes.html', title='Lecture Codes', data=lecid)
+@app.route('/attregister',methods=['GET','POST'])
+def register():
+    global lecture_IDENTITY
+    form=AttendanceForm(request.form)
+    return redirect(url_for('attemptreg'))
 
+
+@app.route('/regattendance',methods=['GET','POST'])
+def attemptreg():
+    lecture_IDENTITY
+    connection = psycopg2.connect(user="postgres",password="michael",host="localhost",port="5432",database="uea_attendance")
+    # Create cursor
+    cursor = connection.cursor()
+    # Get lecture by id
+    form = AttendanceForm()
+    result = cursor.execute("SELECT * FROM uealectures WHERE lecture_id = %s", [lecture_IDENTITY])
+    lecture = cursor.fetchone()
+        # Get form
+    form= AttendanceForm(request.form)
+        # Populate lecture form fields
+    form.lecture_id.data = lecture_IDENTITY
+    form.student_id.data= 1
+    return render_template('attreg.html', title='Register', form=form)
+
+@app.route('/lecturefeedback')
+def feedbackload():
+    form = FeedbackForm()
+    return render_template('submitfeedback.html', title='Lecture Feedback', form=form)
+
+@app.route('/sendfeedback', methods=['POST'])
+def sendfeedback():
+    connection = psycopg2.connect(user="postgres",password="michael",host="localhost",port="5432",database="uea_attendance")
+    # Create cursor
+    form = FeedbackForm(request.form)
+    if request.method== 'POST' and form.validate():
+        cursor = connection.cursor()
+        lecture_code= request.form['lecturecode']
+        feedback= request.form['feedback']
+        cursor.execute("INSERT INTO ueafeedback (lecture_code,feedback) VALUES (%s, %s)",
+        (lecture_code,feedback))
+        connection.commit()
+        connection.close()
+        flash('Feedback has been submited', 'success')
+        return redirect(url_for('index'))
+
+@app.route('/viewfeedback/<string:id>', methods=['GET', 'POST'])
+def viewfeedback(id):
+    connection = psycopg2.connect(user="postgres",password="michael",host="localhost",port="5432",database="uea_attendance")
+        # Create cursor
+    cursor = connection.cursor()
+
+        # Get feedback by code
+    result = cursor.execute("SELECT uealectures.lecture_id,uealectures.lecture_name, ueafeedback.lecture_code, ueafeedback.feedback FROM ueafeedback INNER JOIN uealectures ON ueafeedback.lecture_code=uealectures.lecture_code WHERE ueafeedback.lecture_code =%s",[id])
+    found = cursor.fetchall()
+    connection.close()
+    if found == None:
+        error = "No Feedback has been submitted yet"
+        return render_template('dashboard.html', title='Dashboard', error=error)
+    else:
+        return render_template('viewfeedback.html', title='View Feedback',data=found)
 
 @app.route('/logout')
 def logout():
@@ -207,7 +306,6 @@ def logout():
     flash('You are now logged out', 'success')
     return redirect(url_for('index'))
 
-
-
 if __name__ == '__main__':
-    app.run()
+    lecture_IDENTITY = None
+    app.run(host='192.168.0.141')
