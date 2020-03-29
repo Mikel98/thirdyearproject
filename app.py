@@ -242,9 +242,37 @@ def lecturecodes(id):
 @app.route('/attregister',methods=['GET','POST'])
 def register():
     global lecture_IDENTITY
-    form=AttendanceForm(request.form)
-    return redirect(url_for('attemptreg'))
+    return redirect(url_for('studentlogin'))
 
+@app.route('/studentlogin', methods=['GET','POST'])
+def studentlogin():
+    connection = psycopg2.connect(user="postgres",password="michael",host="localhost",port="5432",database="uea_attendance")
+    form = LoginForm(request.form)
+    return render_template('studentlogin.html', title= 'Student Login', form=form)
+
+@app.route('/test', methods=['POST'])
+def test():
+    connection = psycopg2.connect(user="postgres",password="michael",host="localhost",port="5432",database="uea_attendance")
+    form = LoginForm(request.form)
+    if request.method== 'POST' and form.validate():
+        cursor = connection.cursor()
+        cursor2 = connection.cursor()
+        username= request.form['username']
+        password= request.form['password']
+        cursor.execute("SELECT * FROM ueausers where ueausers.username=%s and ueausers.password=%s",
+        (username,password))
+        found = cursor.fetchone()
+        if found == None:
+            error = "Invalid Credentials , Try Again"
+            return render_template ("studentlogin.html", title='Student Login', form=LoginForm(), error = error)
+        elif found[3] == 'student':
+            session['loggedInStudent'] = True
+            session['studentID'] = found[0]
+            return redirect(url_for('attemptreg'))
+        else:
+            error = "Access Level Incorrect, Use different details"
+            return render_template ("studentlogin.html", title='Student Login', form=LoginForm(), error = error)
+        connection.close()
 
 @app.route('/regattendance',methods=['GET','POST'])
 def attemptreg():
@@ -252,15 +280,20 @@ def attemptreg():
     connection = psycopg2.connect(user="postgres",password="michael",host="localhost",port="5432",database="uea_attendance")
     # Create cursor
     cursor = connection.cursor()
+    cursor2 = connection.cursor()
     # Get lecture by id
     form = AttendanceForm()
     result = cursor.execute("SELECT * FROM uealectures WHERE lecture_id = %s", [lecture_IDENTITY])
+    test = cursor2.execute("SELECT ueastudent.student_id,ueastudent.student_forename, ueastudent.student_surname FROM ueastudent INNER JOIN ueausers ON ueausers.id=ueastudent.student_id WHERE ueastudent.student_id =%s",(session['studentID'],))
     lecture = cursor.fetchone()
+    studentinfo = cursor2.fetchone()
         # Get form
     form= AttendanceForm(request.form)
         # Populate lecture form fields
     form.lecture_id.data = lecture_IDENTITY
-    form.student_id.data= 1
+    form.student_id.data= studentinfo[0]
+    form.forename.data=studentinfo[1]
+    form.surname.data=studentinfo[2]
     return render_template('attreg.html', title='Register', form=form)
 
 @app.route('/lecturefeedback')

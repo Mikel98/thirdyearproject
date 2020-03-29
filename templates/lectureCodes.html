@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>The Qr Code for this lecture is</h2>
+<h2>The Qr Code for this lecture is:</h2>
 <img src="{{ qrcode('http://192.168.0.141:5000/attregister') }}">
 <h2>Code required to submit feedback = {{data[5]}}</h2>
- <a href="https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=http://127.0.0.1:5000/registerattendance/<string:id>">Link</a></h2>
 {% endblock %}
