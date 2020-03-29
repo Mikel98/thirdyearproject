@@ -4,15 +4,15 @@
 <h2>Login</h2>
 <form action="/registerattendance" method="POST">
     <div style = font-size:20px; font-weight:bold; margin-left:150px;>
-              {{form.lecture_id.label}} {{form.lecture_id}}
+              {{form.lecture_id.label}} {{form.lecture_id(readonly=true)}}
               <br>
-              {{form.student_id.label}} {{form.student_id}}
+              {{form.student_id.label}} {{form.student_id(readonly=true)}}
               <br>
-              {{form.forename.label}} {{form.forename}}
+              {{form.forename.label}} {{form.forename(readonly=true)}}
               <br>
-              {{form.surname.label}} {{form.surname}}
+              {{form.surname.label}} {{form.surname(readonly=true)}}
               <br>
-              {{form.attendance.label}} {{form.attendance}}
+              {{form.attendance.label}} {{form.attendance(readonly=true)}}
               <br>
               {{form.submit}}
            </div>

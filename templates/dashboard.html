@@ -2,11 +2,12 @@
 {% block content %}
 <h2> Dashboard for {{session.username}}</h2>
 
-<table class="table table-hover">
+<table class="table table-sm">
     <tr>
       <th>Lecture Name</th>
       <th>Lecture Date</th>
       <th>Lecture Time</th>
+      <th>Lecture Code</th>
       <th></th>
       <th></th>
       <th></th>
@@ -17,8 +18,10 @@
         <td>{{lectures[0]}}</td>
         <td>{{lectures[1]}}</td>
         <td>{{lectures[2]}}</td>
+        <td>{{lectures[5]}}</td>
         <td><a href="lecturecodes/{{lectures[4]}}" class="btn btn-secondary pullright">Display Codes</a></td>
         <td><a href="viewfeedback/{{lectures[5]}}" class="btn btn-info">View Feedback</a></td>
+                <td><a href="viewattendance/{{lectures[4]}}" class="btn btn-info">View Attendance</a></td>
         <td><a href="editlecture/{{lectures[4]}}" class="btn btn-primary pullright">Edit Lecture</a></td>
         <td> <form action="{{url_for('deletelecture', id=lectures.id)}}" method="post">
             <input type="hidden" name="_method" value="DELETE">
