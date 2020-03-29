@@ -1,20 +1,14 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>Register new Account</h2>
-<form action="/registeruser" method="POST">
+<h2>Student Login</h2>
+<form action="/test" method="POST">
     <div style = font-size:20px; font-weight:bold; margin-left:150px;>
               {{form.username.label}} {{form.username}}
               <br>
               {{form.password.label}} {{form.password}}
               <br>
-              {{form.confirmpassword.label}} {{form.confirmpassword}}
-              <br>
               {{form.submit}}
            </div>
   </form>
-  {% if error %}
-<p class="error"> <strong>Error:</strong>  {{ error }} </p>
-{% endif %}
-</form>
 {% endblock %}

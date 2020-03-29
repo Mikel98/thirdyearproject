@@ -1,4 +1,21 @@
 {% extends "base.html" %}
 {% block content %}
-
+{% for feedback in data %}
+<h1>Feedback for Lecture:{{feedback[1]}}</h1>
+<table class="table table-striped">
+    <tr>
+      <th>Lecture ID</th>
+      <th>Lecture Name</th>
+      <th>Lecture Feedback</th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+      <tr>
+        <td>{{feedback[0]}}</td>
+        <td>{{feedback[1]}}</td>
+        <td>{{feedback[3]}}</td>
+      </tr>
+      {% endfor %}
+</table>
 {% endblock %}
