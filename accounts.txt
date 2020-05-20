@@ -1,0 +1,7 @@
+Student
+username:Ella
+password:test
+
+ADMIN
+username:michael
+password: test

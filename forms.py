@@ -17,9 +17,10 @@ class LoginForm(Form):
 
 class NewLectureForm(Form):
     lecturename = StringField('Lecture Name:', [validators.DataRequired()])
-    lecturedate = DateField('Lecture Date:', [validators.DataRequired()])
-    lecturetime = TimeField('Lecture Time:', [validators.DataRequired()])
+    sessiondate = DateField('Lecture Date:', [validators.DataRequired()])
+    sessiontime = TimeField('Lecture Time:', [validators.DataRequired()])
     lecturecode = StringField('Lecture Code:')
+    sessiontype = SelectField('Session Type:',choices=[('Lec','Lecture'), ('Sem','Seminar'),('Lab','Lab')])
     submit = SubmitField('Create Lecture')
 
 class UpdateLectureForm(Form):

@@ -26,11 +26,12 @@ def registerattempt():
         username= request.form['username']
         password= request.form['password']
         confirmpassword = request.form['confirmpassword']
+        hashedpassword =  sha256_crypt.hash(password)
         if password != confirmpassword:
             error = "Please check that passwords match"
             return render_template('register.html',title='Register', form=form, error=error)
         cursor.execute("INSERT INTO ueausers (username,password) VALUES (%s, %s)",
-        (username,password))
+        (username,hashedpassword))
         connection.commit()
         connection.close()
         flash('User has been created', 'success')
@@ -52,27 +53,23 @@ def loginattempt():
         cursor = connection.cursor()
         username= request.form['username']
         password= request.form['password']
-        cursor.execute("SELECT * FROM ueausers where ueausers.username=%s and ueausers.password=%s",
-        (username,password))
+        cursor.execute("SELECT * FROM ueausers where username=%s", (username,))
         found = cursor.fetchone()
-        if found == None:
-            error = "Invalid Credentials , Try Again"
-            return render_template ("login.html", title='Login', form=LoginForm(), error = error)
-        elif found[3] == 'admin':
+        if sha256_crypt.verify(password, found[2]) and found[3] == 'admin':
             session['loggedInAdmin'] = True
             session['userID'] = found[0]
             session['username'] = username
             session['accounttype'] = 'ADMIN'
             flash('You are now logged in', 'success')
             return redirect(url_for('admin'))
-        elif found[3] == 'staff':
+        elif sha256_crypt.verify(password, found[2]) and found[3] == 'staff':
             session['loggedInStaff'] = True
             session['userID'] = found[0]
             session['username'] = username
             session['accounttype'] = 'STAFF'
             flash('You are now logged in', 'success')
             return redirect(url_for('dashboard'))
-        else:
+        elif sha256_crypt.verify(password, found[2]):
             session['loggedInStudent'] = True
             session['userID'] = found[0]
             session['username'] = username
@@ -80,13 +77,16 @@ def loginattempt():
             connection.close()
             flash('You are now logged in', 'success')
             return redirect(url_for('dashboard'))
+        else:
+            error = "Invalid Credentials , Try Again"
+            return render_template ("login.html", title='Login', form=LoginForm(), error = error)
 
 @app.route('/dashboard')
 def dashboard():
     if 'userID' in session:
         connection = psycopg2.connect(user="postgres",password="michael",host="localhost",port="5432",database="uea_attendance")
         cursor = connection.cursor()
-        cursor.execute("SELECT * FROM uealectures where staff_id= %s", (session['userID'],))
+        cursor.execute("SELECT * FROM ueasession where staff_id= %s", (session['userID'],))
         found = cursor.fetchall()
         connection.close()
         if found == None:
@@ -100,7 +100,7 @@ def dashboard():
 @app.route('/admin')
 def admin():
     if 'loggedInAdmin' in session:
-        return render_template('dashboard.html', title="ADMIN Dashboard")
+        return render_template('admindashboard.html', title="ADMIN Dashboard")
     else:
         error = 'Please Log In'
         return render_template('index.html', title='Home',error=error)
@@ -164,11 +164,12 @@ def createlecture():
         if request.method== 'POST' and form.validate():
             cursor = connection.cursor()
             lecturename= form.lecturename.data
-            lecturedate= form.lecturedate.data
-            lecturetime= form.lecturetime.data
+            sessiondate= form.sessiondate.data
+            sessiontime= form.sessiontime.data
             lecturecode= randomLectureCode()
-            cursor.execute("INSERT INTO uealectures (lecture_name, lecturedate, lecturetime, staff_id,lecture_code) VALUES (%s , %s, %s, %s, %s)",
-            (lecturename,lecturedate,lecturetime,session['userID'],lecturecode))
+            session_type = form.sessiontype.data
+            cursor.execute("INSERT INTO ueasession (session_name, sessiondate, sessiontime, staff_id, lecture_code, session_type) VALUES (%s , %s, %s, %s, %s,%s)",
+            (lecturename,sessiondate,sessiontime,session['userID'],lecturecode, session_type))
             connection.commit()
             connection.close()
             flash('You have sucessfully added the lecture', 'success')
@@ -188,23 +189,23 @@ def edit_lecture(id):
         cursor = connection.cursor()
 
             # Get lecture by id
-        result = cursor.execute("SELECT * FROM uealectures WHERE lecture_id = %s", [id])
+        result = cursor.execute("SELECT * FROM ueasession WHERE lecture_id = %s", [id])
 
         lecture = cursor.fetchone()
             # Get form
         form = UpdateLectureForm(request.form)
             # Populate lecture form fields
         form.lecturename.data = lecture[0]
-        form.lecturedate.data = lecture[1]
-        form.lecturetime.data = lecture[2]
+        form.sessiondate.data = lecture[1]
+        form.sessiontime.data = lecture[2]
         form.lecturecode.data = lecture[5]
 
         if request.method == 'POST' and form.validate():
             cursor = connection.cursor()
             lecturename= request.form['lecturename']
-            lecturedate= request.form['lecturedate']
-            lecturetime= request.form['lecturetime']
-            cursor.execute("UPDATE uealectures SET lecture_name=%s, lecturedate=%s, lecturetime=%s WHERE lecture_id=%s",(lecturename,lecturedate,lecturetime,id))
+            sessiondate= request.form['sessiondate']
+            sessiontime= request.form['sessiontime']
+            cursor.execute("UPDATE ueasession SET session_name=%s, sessiondate=%s, sessiontime=%s WHERE lecture_id=%s",(lecturename,sessiondate,sessiontime,id))
             connection.commit()
             connection.close()
             flash('You have sucessfully updated the lecture', 'success')
@@ -220,7 +221,7 @@ def deletelecture(id):
         connection = psycopg2.connect(user="postgres",password="michael",host="localhost",port="5432",database="uea_attendance")
         cur = connection.cursor()
         # Delete Lecture by id
-        cur.execute("DELETE FROM uealectures WHERE lecture_id = %s", [id])
+        cur.execute("DELETE FROM ueasession WHERE lecture_id = %s", [id])
         connection.commit()
         connection.close()
         flash('Lecture Deleted', 'success')
@@ -237,7 +238,7 @@ def lecturecodes(id):
         # Create cursor
         cursor = connection.cursor()
         # Get lecture by id
-        result = cursor.execute("SELECT * FROM uealectures WHERE lecture_id = %s", [id])
+        result = cursor.execute("SELECT * FROM ueasession WHERE lecture_id = %s", [id])
         lecture = cursor.fetchone()
         lectureid = lecture[4]
         lecture_IDENTITY = lecture[4]
@@ -268,20 +269,20 @@ def test():
         cursor2 = connection.cursor()
         username= request.form['username']
         password= request.form['password']
-        cursor.execute("SELECT * FROM ueausers where ueausers.username=%s and ueausers.password=%s",
-        (username,password))
+        hashedpassword =  sha256_crypt.hash(password)
+        cursor.execute("SELECT * FROM ueausers where username=%s", (username,))
         found = cursor.fetchone()
-        if found == None:
-            error = "Invalid Credentials , Try Again"
-            return render_template ("studentlogin.html", title='Student Login', form=LoginForm(), error = error)
-        elif found[3] == 'student':
+        if sha256_crypt.verify(password, found[2]) and found[3] == 'student':
             session['loggedInStudent'] = True
             session['studentID'] = found[0]
             return redirect(url_for('attemptreg'))
-        else:
+        elif sha256_crypt.verify(password, found[2]) and found[3] != 'student':
             error = "Access Level Incorrect, Use different details"
             return render_template ("studentlogin.html", title='Student Login', form=LoginForm(), error = error)
-        connection.close()
+        else:
+            error = "Invalid Credentials , Try Again"
+            return render_template ("studentlogin.html", title='Student Login', form=LoginForm(), error = error)
+            connection.close()
 
 @app.route('/regattendance',methods=['GET','POST'])
 def attemptreg():
@@ -292,7 +293,7 @@ def attemptreg():
     cursor2 = connection.cursor()
     # Get lecture by id
     form = AttendanceForm()
-    result = cursor.execute("SELECT * FROM uealectures WHERE lecture_id = %s", [lecture_IDENTITY])
+    result = cursor.execute("SELECT * FROM ueasession WHERE lecture_id = %s", [lecture_IDENTITY])
     test = cursor2.execute("SELECT ueastudent.student_id,ueastudent.student_forename, ueastudent.student_surname FROM ueastudent INNER JOIN ueausers ON ueausers.id=ueastudent.student_id WHERE ueastudent.student_id =%s",(session['studentID'],))
     lecture = cursor.fetchone()
     studentinfo = cursor2.fetchone()
@@ -365,7 +366,7 @@ def viewfeedback(id):
         cursor = connection.cursor()
 
             # Get feedback by code
-        result = cursor.execute("SELECT uealectures.lecture_id,uealectures.lecture_name, ueafeedback.lecture_code, ueafeedback.feedback FROM ueafeedback INNER JOIN uealectures ON ueafeedback.lecture_code=uealectures.lecture_code WHERE ueafeedback.lecture_code =%s",[id])
+        result = cursor.execute("SELECT ueasession.lecture_id,ueasession.session_name, ueafeedback.lecture_code, ueafeedback.feedback FROM ueafeedback INNER JOIN ueasession ON ueafeedback.lecture_code=ueasession.lecture_code WHERE ueafeedback.lecture_code =%s",[id])
         found = cursor.fetchall()
         connection.close()
         if found == None:
@@ -405,4 +406,4 @@ def logout():
 
 if __name__ == '__main__':
     lecture_IDENTITY = None
-    app.run(host='192.168.0.141')
+    app.run(host='192.168.0.21')
