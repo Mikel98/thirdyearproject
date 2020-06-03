@@ -3,12 +3,9 @@ username:michael
 password:test
 
 STAFF ACCOUNT
-usename:paul
-password:test123
-
-username:adam
-password:password
+usename:Ella
+password:test
 
 STUDENT ACCOUNT
 username:steve
-password:test123
+password:test

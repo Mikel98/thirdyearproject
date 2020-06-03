@@ -37,6 +37,13 @@ class StaffPersonalForm(Form):
     faculty = SelectField('Faculty',choices=[('A&H','Arts & Humanities'), ('M&HS','Medicine & Health Sciences'),('S','Science'),('SS','Social Sciences')])
     submit = SubmitField('Update Details')
 
+class StudentPersonalForm(Form):
+    forename = StringField('Forename:', [validators.DataRequired()])
+    surname = StringField('Surname:', [validators.DataRequired()])
+    email = StringField('Email Address:', [validators.DataRequired()])
+    submit = SubmitField('Update Details')
+
+
 class AttendanceForm(Form):
         lecture_id=IntegerField()
         student_id=IntegerField()

@@ -55,7 +55,11 @@ def loginattempt():
         password= request.form['password']
         cursor.execute("SELECT * FROM ueausers where username=%s", (username,))
         found = cursor.fetchone()
-        if sha256_crypt.verify(password, found[2]) and found[3] == 'admin':
+        #time.sleep(4)
+        if found == None:
+            error = "Invalid Credentials , Try Again"
+            return render_template ("login.html", title='Login', form=LoginForm(), error = error)
+        elif sha256_crypt.verify(password, found[2]) and found[3] == 'admin':
             session['loggedInAdmin'] = True
             session['userID'] = found[0]
             session['username'] = username
@@ -69,7 +73,7 @@ def loginattempt():
             session['accounttype'] = 'STAFF'
             flash('You are now logged in', 'success')
             return redirect(url_for('dashboard'))
-        elif sha256_crypt.verify(password, found[2]):
+        elif sha256_crypt.verify(password, found[2]) and found[3] == 'student':
             session['loggedInStudent'] = True
             session['userID'] = found[0]
             session['username'] = username
@@ -77,6 +81,13 @@ def loginattempt():
             connection.close()
             flash('You are now logged in', 'success')
             return redirect(url_for('dashboard'))
+        elif sha256_crypt.verify(password, found[2]) and found[3] == None:
+            session['loggedIn'] = True
+            session['userID'] = found[0]
+            session['username'] = username
+            connection.close()
+            flash('You are now logged in', 'success')
+            return redirect(url_for('guest'))
         else:
             error = "Invalid Credentials , Try Again"
             return render_template ("login.html", title='Login', form=LoginForm(), error = error)
@@ -86,13 +97,36 @@ def dashboard():
     if 'userID' in session:
         connection = psycopg2.connect(user="postgres",password="michael",host="localhost",port="5432",database="uea_attendance")
         cursor = connection.cursor()
-        cursor.execute("SELECT * FROM ueasession where staff_id= %s", (session['userID'],))
-        found = cursor.fetchall()
-        connection.close()
-        if found == None:
-            return render_template('dashboard.html', title='Dashboard')
-        else:
-            return render_template('dashboard.html', title='Dashboard',data=found)
+        cursor2 = connection.cursor()
+        cursor3 = connection.cursor()
+        if 'loggedInStaff' in session:
+            cursor.execute("SELECT * FROM ueasession where staff_id= %s AND session_type= %s", (session['userID'],"Lec"))
+            cursor2.execute("SELECT * FROM ueasession where staff_id= %s AND session_type= %s", (session['userID'],"Sem"))
+            cursor3.execute("SELECT * FROM ueasession where staff_id= %s AND session_type= %s", (session['userID'],"Lab"))
+            found = cursor.fetchall()
+            sem = cursor2.fetchall()
+            lab = cursor3.fetchall()
+            connection.close()
+            if found == None:
+                return render_template('dashboard.html', title='Dashboard')
+            else:
+                return render_template('dashboard.html', title='Dashboard',data=found, sem=sem,lab=lab)
+        elif 'loggedInStudent' in session:
+            cursor.execute("SELECT session_name,sessiondate,sessiontime FROM ueasession inner join sessionattendance On student_id= %s", (session['userID'],))
+            found = cursor.fetchall()
+            connection.close()
+            if found == None:
+                return render_template('studentdashboard.html', title='Dashboard')
+            else:
+                return render_template('studentdashboard.html', title='Dashboard',data=found)
+    else:
+        error = 'Please Log In'
+        return render_template('index.html', title='Home',error=error)
+
+@app.route('/guest')
+def guest():
+    if 'userID' in session:
+            return render_template('guest.html', title='Guest')
     else:
         error = 'Please Log In'
         return render_template('index.html', title='Home',error=error)
@@ -113,15 +147,19 @@ def staffupdatedetails():
         # Get staff member by id
         cursor.execute("SELECT * FROM ueastaff WHERE staff_id = %s", (session['userID'],))
         found = cursor.fetchone()
+        if found == None:
+            form = StaffPersonalForm()
+            return render_template('updatedetails.html', title='Update Details', form=form)
+        else:
             # Get form
-        form = StaffPersonalForm()
-            # Populate lecture form fields
-        form.forename.data = found[1]
-        form.surname.data = found[2]
-        form.email.data = found[3]
-        form.faculty.data = found[4]
-        connection.close()
-        return render_template('updatedetails.html', title='Update Details', form=form)
+            form = StaffPersonalForm()
+                # Populate lecture form fields
+            form.forename.data = found[1]
+            form.surname.data = found[2]
+            form.email.data = found[3]
+            form.faculty.data = found[4]
+            connection.close()
+            return render_template('updatedetails.html', title='Update Details', form=form)
     else:
         error = 'Please Log In'
         return render_template('index.html', title='Home',error=error)
@@ -138,7 +176,51 @@ def detailsupdateattempt():
             surname= form.surname.data
             email= form.email.data
             faculty= form.faculty.data
-            cursor.execute("UPDATE ueastaff SET staff_forename=%s, staff_surname=%s, staff_email=%s, staff_faculty=%s WHERE staff_id=%s",(forename,surname,email, faculty,session['userID']))
+            cursor.execute("INSERT INTO ueastaff (staff_id, staff_forename, staff_surname, staff_email, staff_faculty) VALUES (%s,%s,%s,%s,%s)",(session['userID'],forename,surname,email, faculty))
+            connection.commit()
+            connection.close()
+            flash('Details have been updated', 'success')
+            return redirect(url_for('dashboard'))
+        else:
+            error = 'Please Log In'
+            return render_template('index.html', title='Home',error=error)
+
+@app.route('/studentupdatedetails', methods=['GET'])
+def studentupdatedetails():
+    if 'loggedInStudent' in session:
+        connection = psycopg2.connect(user="postgres",password="michael",host="localhost",port="5432",database="uea_attendance")
+        cursor = connection.cursor()
+        # Get staff member by id
+        cursor.execute("SELECT * FROM ueastudent WHERE student_id = %s", (session['userID'],))
+        found = cursor.fetchone()
+        if found == None:
+            form = StudentPersonalForm()
+            return render_template('studentupdatedetails.html', title='Update Details', form=form)
+        else:
+            # Get form
+            form = StudentPersonalForm()
+                # Populate lecture form fields
+            form.forename.data = found[1]
+            form.surname.data = found[2]
+            form.email.data = found[3]
+            connection.close()
+            return render_template('studentupdatedetails.html', title='Update Details', form=form)
+    else:
+        error = 'Please Log In'
+        return render_template('index.html', title='Home',error=error)
+
+@app.route('/studentdetailspush', methods=['POST'])
+def studentupdateattempt():
+    if 'loggedInStudent' in session:
+        connection = psycopg2.connect(user="postgres",password="michael",host="localhost",port="5432",database="uea_attendance")
+        cursor = connection.cursor()
+        form = StudentPersonalForm(request.form)
+        if request.method== 'POST' and form.validate():
+            cursor = connection.cursor()
+            forename= form.forename.data
+            surname= form.surname.data
+            email= form.email.data
+            cursor.execute("INSERT INTO ueastudent (student_id, student_forename, student_surname, student_email) VALUES (%s,%s,%s,%s)",(session['userID'],forename,surname,email))
             connection.commit()
             connection.close()
             flash('Details have been updated', 'success')
@@ -189,7 +271,7 @@ def edit_lecture(id):
         cursor = connection.cursor()
 
             # Get lecture by id
-        result = cursor.execute("SELECT * FROM ueasession WHERE lecture_id = %s", [id])
+        result = cursor.execute("SELECT * FROM ueasession WHERE lectureid = %s", [id])
 
         lecture = cursor.fetchone()
             # Get form
@@ -238,10 +320,10 @@ def lecturecodes(id):
         # Create cursor
         cursor = connection.cursor()
         # Get lecture by id
-        result = cursor.execute("SELECT * FROM ueasession WHERE lecture_id = %s", [id])
+        cursor.execute("SELECT * FROM ueasession WHERE lectureid = %s", [id])
         lecture = cursor.fetchone()
-        lectureid = lecture[4]
-        lecture_IDENTITY = lecture[4]
+        lectureid = lecture[0]
+        lecture_IDENTITY = lecture[0]
         return render_template('lecturecodes.html', title='Lecture Codes', data=lecture)
     else:
         error = 'Please Log In'
@@ -293,7 +375,7 @@ def attemptreg():
     cursor2 = connection.cursor()
     # Get lecture by id
     form = AttendanceForm()
-    result = cursor.execute("SELECT * FROM ueasession WHERE lecture_id = %s", [lecture_IDENTITY])
+    result = cursor.execute("SELECT * FROM ueasession WHERE lectureid = %s", [lecture_IDENTITY])
     test = cursor2.execute("SELECT ueastudent.student_id,ueastudent.student_forename, ueastudent.student_surname FROM ueastudent INNER JOIN ueausers ON ueausers.id=ueastudent.student_id WHERE ueastudent.student_id =%s",(session['studentID'],))
     lecture = cursor.fetchone()
     studentinfo = cursor2.fetchone()
@@ -320,7 +402,7 @@ def submitattendance():
                 forename= form.forename.data
                 surname= form.surname.data
                 mark= form.attendance.data
-                cursor.execute("INSERT INTO lectureattendance (lecture_id, student_id, student_forename, student_surname,attendance_mark) VALUES (%s , %s, %s, %s, %s)",
+                cursor.execute("INSERT INTO sessionattendance (lecture_id, student_id, student_forename, student_surname,attendance_mark) VALUES (%s , %s, %s, %s, %s)",
                 (lectureID,studentID,forename,surname,mark))
                 connection.commit()
                 connection.close()
@@ -366,7 +448,7 @@ def viewfeedback(id):
         cursor = connection.cursor()
 
             # Get feedback by code
-        result = cursor.execute("SELECT ueasession.lecture_id,ueasession.session_name, ueafeedback.lecture_code, ueafeedback.feedback FROM ueafeedback INNER JOIN ueasession ON ueafeedback.lecture_code=ueasession.lecture_code WHERE ueafeedback.lecture_code =%s",[id])
+        result = cursor.execute("SELECT ueasession.lectureid,ueasession.session_name, ueafeedback.lecture_code, ueafeedback.feedback FROM ueafeedback INNER JOIN ueasession ON ueafeedback.lecture_code=ueasession.lecture_code WHERE ueafeedback.lecture_code =%s",[id])
         found = cursor.fetchall()
         connection.close()
         if found == None:
@@ -386,7 +468,7 @@ def viewattendance(id):
         cursor = connection.cursor()
 
             # Get feedback by code
-        result = cursor.execute("SELECT * FROM (SELECT  lecture_id,CONCAT(student_forename, ' ', student_surname) AS student_name, attendance_mark FROM lectureattendance) base WHERE lecture_id =%s",[id])
+        result = cursor.execute("SELECT * FROM (SELECT lecture_id,CONCAT(student_forename, ' ', student_surname) AS student_name, attendance_mark FROM sessionattendance) base WHERE lecture_id =%s",[id])
         found = cursor.fetchall()
         connection.close()
         if found == None:
@@ -406,4 +488,4 @@ def logout():
 
 if __name__ == '__main__':
     lecture_IDENTITY = None
-    app.run(host='192.168.0.21')
+    app.run(host='192.168.68.140') #ssl_context='adhoc',

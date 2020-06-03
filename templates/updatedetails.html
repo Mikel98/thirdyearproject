@@ -1,7 +1,50 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>Login</h2>
+<div class="card">
+  <div class="card-body">
+<ul class="nav nav-tabs" id="myTab" role="tablist">
+    <li class="nav-item">
+        <a class="nav-link active" id="currentdetails-tab" data-toggle="tab" href="#currentdetails" role="tab" aria-controls="currentdetails" aria-selected="true">Current Details</a>
+    </li>
+
+        <li class="nav-item">
+            <a class="nav-link" id="update-tab" data-toggle="tab" href="#update" role="tab" aria-controls="update" aria-selected="false">Update Details</a>
+        </li>
+</ul>
+
+<div class="tab-content">
+<div class="tab-pane fade show active" id="currentdetails" role="tabpanel" aria-labelledby="currentdetails">
+  <div class="row mt-5">
+      <div class="col">
+          <h4> Current Personal Details </h4>
+          <p> Below are the current details we have stored about you. Please update where required </p>
+      </div>
+  </div>
+  <form action="/staffdetailspush" method="POST">
+      <div style = font-size:20px; font-weight:bold; margin-left:150px;>
+                {{form.forename.label}} {{form.forename(readonly=true)}}
+                <br>
+                {{form.surname.label}} {{form.surname(readonly=true)}}
+                <br>
+                {{form.email.label}} {{form.email(readonly=true)}}
+                <br>
+                {{form.faculty.label}} {{form.faculty(readonly=true)}}
+                <br>
+             </div>
+    </form>
+    {% if error %}
+  <p class="error"> <strong>Error:</strong>  {{ error }} </p>
+  {% endif %}
+  </div>
+
+<div class="tab-pane fade" id="update" role="tabpanel" aria-labelledby="update">
+    <div class="row mt-5">
+        <div class="col">
+            <h4> Update Personal Details </h4>
+            <p>Please update personal details using the form below</p>
+        </div>
+    </div>
 <form action="/staffdetailspush" method="POST">
     <div style = font-size:20px; font-weight:bold; margin-left:150px;>
               {{form.forename.label}} {{form.forename}}
@@ -18,5 +61,8 @@
   {% if error %}
 <p class="error"> <strong>Error:</strong>  {{ error }} </p>
 {% endif %}
-</form>
+</div>
+</div>
+</div>
+</div>
 {% endblock %}

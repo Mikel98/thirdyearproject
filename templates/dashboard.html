@@ -1,28 +1,81 @@
 {% extends "base.html" %}
 {% block content %}
 <h2> Dashboard for {{session.username}}</h2>
+<ul class="nav nav-tabs" id="myTab" role="tablist">
+    <li class="nav-item">
+        <a class="nav-link active" id="lectures-tab" data-toggle="tab" href="#lectures" role="tab" aria-controls="lectures" aria-selected="true">Lectures</a>
+    </li>
 
-<table class="table table-sm">
+        <li class="nav-item">
+            <a class="nav-link" id="seminar-tab" data-toggle="tab" href="#seminar" role="tab" aria-controls="seminar" aria-selected="false">Seminar</a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link" id="lab-tab" data-toggle="tab" href="#lab" role="tab" aria-controls="lab" aria-selected="false">Labs</a>
+        </li>
+</ul>
+
+<div class="tab-content">
+<div class="tab-pane fade show active" id="lectures" role="tabpanel" aria-labelledby="lectures">
+  <div class="row mt-5">
+      <div class="col">
+        <table id="LecturesTable" class =table table-sm >
+            <tr>
+              <th>Lecture Name</th>
+              <th>Lecture Date</th>
+              <th>Lecture Time</th>
+              <th>Lecture Code</th>
+              <th></th>
+              <th></th>
+              <th></th>
+              <th></th>
+            </tr>
+            {% for lectures in data %}
+              <tr>
+                <td>{{lectures[1]}}</td>
+                <td>{{lectures[2]}}</td>
+                <td>{{lectures[3]}}</td>
+                <td>{{lectures[5]}}</td>
+                <td><a href="lecturecodes/{{lectures[0]}}" class="btn btn-secondary pullright">Display Codes</a></td>
+                <td><a href="viewfeedback/{{lectures[5]}}" class="btn btn-info">View Feedback</a></td>
+                        <td><a href="viewattendance/{{lectures[0]}}" class="btn btn-info">View Attendance</a></td>
+                <td><a href="editlecture/{{lectures[0]}}" class="btn btn-primary pullright">Edit Lecture</a></td>
+                <td> <form action="{{url_for('deletelecture', id=lectures.id)}}" method="post">
+                    <input type="hidden" name="_method" value="DELETE">
+                    <input type="submit" value="Delete Lecture" class="btn btn-danger">
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </table>
+  </div>
+  </div>
+  </div>
+
+  <div class="tab-pane fade" id="seminar" role="tabpanel" aria-labelledby="seminar">
+      <div class="row mt-5">
+          <div class="col">
+<table id="SeminarTable" class =table table-sm >
     <tr>
-      <th>Lecture Name</th>
-      <th>Lecture Date</th>
-      <th>Lecture Time</th>
-      <th>Lecture Code</th>
+      <th>Seminar Name</th>
+      <th>Seminar Date</th>
+      <th>Seminar Time</th>
+      <th>Seminar Code</th>
       <th></th>
       <th></th>
       <th></th>
       <th></th>
     </tr>
-    {% for lectures in data %}
+    {% for lectures in sem %}
       <tr>
-        <td>{{lectures[0]}}</td>
         <td>{{lectures[1]}}</td>
         <td>{{lectures[2]}}</td>
+        <td>{{lectures[3]}}</td>
         <td>{{lectures[5]}}</td>
-        <td><a href="lecturecodes/{{lectures[4]}}" class="btn btn-secondary pullright">Display Codes</a></td>
+        <td><a href="lecturecodes/{{lectures[0]}}" class="btn btn-secondary pullright">Display Codes</a></td>
         <td><a href="viewfeedback/{{lectures[5]}}" class="btn btn-info">View Feedback</a></td>
-                <td><a href="viewattendance/{{lectures[4]}}" class="btn btn-info">View Attendance</a></td>
-        <td><a href="editlecture/{{lectures[4]}}" class="btn btn-primary pullright">Edit Lecture</a></td>
+                <td><a href="viewattendance/{{lectures[0]}}" class="btn btn-info">View Attendance</a></td>
+        <td><a href="editlecture/{{lectures[0]}}" class="btn btn-primary pullright">Edit Seminar</a></td>
         <td> <form action="{{url_for('deletelecture', id=lectures.id)}}" method="post">
             <input type="hidden" name="_method" value="DELETE">
             <input type="submit" value="Delete Lecture" class="btn btn-danger">
@@ -31,4 +84,54 @@
       </tr>
     {% endfor %}
   </table>
+  </div>
+  </div>
+  </div>
+
+  <div class="tab-pane fade" id="lab" role="tabpanel" aria-labelledby="lab">
+      <div class="row mt-5">
+          <div class="col">
+  <table id="LabsTable" class =table table-sm >
+    <tr>
+      <th>Lab Name</th>
+      <th>Lab Date</th>
+      <th>Lab Time</th>
+      <th>Lab Code</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+    {% for lectures in lab %}
+      <tr>
+        <td>{{lectures[1]}}</td>
+        <td>{{lectures[2]}}</td>
+        <td>{{lectures[3]}}</td>
+        <td>{{lectures[5]}}</td>
+        <td><a href="lecturecodes/{{lectures[0]}}" class="btn btn-secondary pullright">Display Codes</a></td>
+        <td><a href="viewfeedback/{{lectures[5]}}" class="btn btn-info">View Feedback</a></td>
+                <td><a href="viewattendance/{{lectures[0]}}" class="btn btn-info">View Attendance</a></td>
+        <td><a href="editlecture/{{lectures[0]}}" class="btn btn-primary pullright">Edit Lecture</a></td>
+        <td> <form action="{{url_for('deletelecture', id=lectures.id)}}" method="post">
+            <input type="hidden" name="_method" value="DELETE">
+            <input type="submit" value="Delete Lecture" class="btn btn-danger">
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+  </table>
+  </div>
+  </div>
+  </div>
+
+
+
+
+
+
+
+
+
+
 {% endblock %}

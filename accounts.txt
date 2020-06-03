@@ -5,3 +5,8 @@ password:test
 ADMIN
 username:michael
 password: test
+
+
+STAFF
+username:paul
+password:hello
