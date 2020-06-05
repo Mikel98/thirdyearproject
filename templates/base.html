@@ -19,6 +19,16 @@
 
       height: 100%;
     }
+
+    .footer {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  background-color: black;
+  color: white;
+  text-align: center;
+}
   </style>
 </head>
 
@@ -33,7 +43,7 @@
           <li class="nav-item active">
             {% if 'loggedInStaff' in session %}
           <li><a class="nav-link" href="/">Dashboard</a></li>
-          <li><a class="nav-link" href="/newlecture">New Lecture</a></li>
+          <li><a class="nav-link" href="/newlecture">New Session</a></li>
           </li>
         </ul>
       </div>
@@ -60,14 +70,14 @@
     </div>
     {% elif 'loggedInAdmin' in session%}
     <li><a class="nav-link" href="/">Dashboard</a></li>
-    <li><a class="nav-link" href="/login">Manage Accounts</a></li>
+    <li><a class="nav-link" href="/manageaccounts">Manage Accounts</a></li>
     </li>
     </ul>
     </div>
     <div class="navbar-collapse collapse w-100 order-3 dual-collapse2">
       <ul class="navbar-nav ml-auto">
         <li class="nav-item">
-        <li><a class="nav-link" href="/staffupdatedetails">Update Details</a></li>
+        <li><a class="nav-link" href="/adminupdatedetails">Update Details</a></li>
         <li><a class="nav-link" href="/logout">Logout</a></li>
         </li>
       </ul>
@@ -105,6 +115,10 @@
   <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+<div class="footer">
+    <p>© UEA. All rights reserved. University of East Anglia, Norwich Research Park, Norwich, Norfolk, NR4 7TJ, UK. Switchboard: +44 (0) 1603 456161.</p>
+    <p>Developed by Michael Oterunbi - 100213769. Contact at: <a href="mailto:jkq17fvu@uea.ac.uk">jkq17fvu@uea.ac.uk</a></p>
+  </div>
 </body>
 
 </html>

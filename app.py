@@ -2,9 +2,11 @@ from modules import *
 
 global lecture_IDENTITY
 
+#Function to generate a random string used for sessioncodes
 def randomLectureCode(stringLength=4):
     letters = string.ascii_lowercase
     return ''.join(random.choice(letters) for i in range(stringLength))
+
 
 @app.route('/')
 def index():
@@ -18,6 +20,8 @@ def regpage():
     form= RegisterForm()
     return render_template('register.html', title='Register', form=form)
 
+#This function is used in the registration stage of the application. Users
+#fill out the required form values
 @app.route('/registeruser', methods=['POST'])
 def registerattempt():
     form = RegisterForm(request.form)
@@ -45,6 +49,8 @@ def loadlogin():
         form = LoginForm()
         return render_template('login.html', title='Login', form=form)
 
+#this function is used to log users into the system. There is a check carried out
+#to find which access levels an account has and they are shown the corresponding page
 @app.route('/loginattempt', methods=['POST'])
 def loginattempt():
     connection = psycopg2.connect(user="postgres",password="michael",host="localhost",port="5432",database="uea_attendance")
@@ -55,7 +61,7 @@ def loginattempt():
         password= request.form['password']
         cursor.execute("SELECT * FROM ueausers where username=%s", (username,))
         found = cursor.fetchone()
-        #time.sleep(4)
+        time.sleep(4)
         if found == None:
             error = "Invalid Credentials , Try Again"
             return render_template ("login.html", title='Login', form=LoginForm(), error = error)
@@ -139,6 +145,22 @@ def admin():
         error = 'Please Log In'
         return render_template('index.html', title='Home',error=error)
 
+@app.route('/manageaccounts')
+def manageaccounts():
+    if 'loggedInAdmin' in session:
+        connection = psycopg2.connect(user="postgres",password="michael",host="localhost",port="5432",database="uea_attendance")
+        cursor = connection.cursor()
+        cursor.execute("SELECT * FROM ueausers")
+        data = cursor.fetchall()
+        connection.close()
+
+        return render_template('manageaccounts.html', title="ADMIN Dashboard")
+    else:
+        error = 'Please Log In'
+        return render_template('index.html', title='Home',error=error)
+
+
+
 @app.route('/staffupdatedetails', methods=['GET'])
 def staffupdatedetails():
     if 'loggedInStaff' in session:
@@ -185,12 +207,14 @@ def detailsupdateattempt():
             error = 'Please Log In'
             return render_template('index.html', title='Home',error=error)
 
+#this function is used to gather the student details linked to the account that
+#is accessing the page.
 @app.route('/studentupdatedetails', methods=['GET'])
 def studentupdatedetails():
     if 'loggedInStudent' in session:
         connection = psycopg2.connect(user="postgres",password="michael",host="localhost",port="5432",database="uea_attendance")
         cursor = connection.cursor()
-        # Get staff member by id
+        # Get student by id
         cursor.execute("SELECT * FROM ueastudent WHERE student_id = %s", (session['userID'],))
         found = cursor.fetchone()
         if found == None:
@@ -199,7 +223,7 @@ def studentupdatedetails():
         else:
             # Get form
             form = StudentPersonalForm()
-                # Populate lecture form fields
+                # Populate details form fields
             form.forename.data = found[1]
             form.surname.data = found[2]
             form.email.data = found[3]
@@ -209,6 +233,8 @@ def studentupdatedetails():
         error = 'Please Log In'
         return render_template('index.html', title='Home',error=error)
 
+#This funcion is used to update students details within the database using data
+#supplied from the forms found on the website
 @app.route('/studentdetailspush', methods=['POST'])
 def studentupdateattempt():
     if 'loggedInStudent' in session:
@@ -229,6 +255,7 @@ def studentupdateattempt():
             error = 'Please Log In'
             return render_template('index.html', title='Home',error=error)
 
+
 @app.route('/newlecture')
 def newlecture():
     if 'loggedInStaff' in session:
@@ -238,6 +265,8 @@ def newlecture():
         error = 'Please Log In'
         return render_template('index.html', title='Home',error=error)
 
+
+#This function creates the sessions that are used for tracking students attendance
 @app.route('/createlecture', methods=['POST'])
 def createlecture():
     if 'loggedInStaff' in session:
@@ -254,7 +283,7 @@ def createlecture():
             (lecturename,sessiondate,sessiontime,session['userID'],lecturecode, session_type))
             connection.commit()
             connection.close()
-            flash('You have sucessfully added the lecture', 'success')
+            flash('You have sucessfully created the session', 'success')
             return redirect(url_for('dashboard'))
         else:
             error=('Something has gone wrong')
@@ -277,20 +306,22 @@ def edit_lecture(id):
             # Get form
         form = UpdateLectureForm(request.form)
             # Populate lecture form fields
-        form.lecturename.data = lecture[0]
-        form.sessiondate.data = lecture[1]
-        form.sessiontime.data = lecture[2]
-        form.lecturecode.data = lecture[5]
+        form.session_name.data = lecture[1]
+        form.sessiondate.data = lecture[2]
+        form.sessiontime.data = lecture[3]
+        form.sessioncode.data = lecture[5]
+        form.sessiontype.data = lecture[6]
 
         if request.method == 'POST' and form.validate():
             cursor = connection.cursor()
-            lecturename= request.form['lecturename']
+            session_name= request.form['session_name']
             sessiondate= request.form['sessiondate']
             sessiontime= request.form['sessiontime']
-            cursor.execute("UPDATE ueasession SET session_name=%s, sessiondate=%s, sessiontime=%s WHERE lecture_id=%s",(lecturename,sessiondate,sessiontime,id))
+            sessiontype= request.form['sessiontype']
+            cursor.execute("UPDATE ueasession SET session_name=%s, sessiondate=%s, sessiontime=%s ,session_type=%s WHERE lectureid=%s",(session_name,sessiondate,sessiontime,sessiontype,id))
             connection.commit()
             connection.close()
-            flash('You have sucessfully updated the lecture', 'success')
+            flash('You have sucessfully updated the session', 'success')
             return redirect(url_for('dashboard'))
         return render_template ('editlecture.html', form=form)
     else:
@@ -302,11 +333,13 @@ def deletelecture(id):
     if 'loggedInStaff' in session:
         connection = psycopg2.connect(user="postgres",password="michael",host="localhost",port="5432",database="uea_attendance")
         cur = connection.cursor()
-        # Delete Lecture by id
-        cur.execute("DELETE FROM ueasession WHERE lecture_id = %s", [id])
+        # Delete Lecture by id from all the tables in the database
+        cur.execute("DELETE FROM ueasession WHERE lectureid = %s", [id])
+        cur.execute("DELETE FROM sessionattendance WHERE lecture_id = %s", [id])
+        cur.execute("DELETE FROM sessionattendance WHERE lecture_id = %s", [id])
         connection.commit()
         connection.close()
-        flash('Lecture Deleted', 'success')
+        flash('Session Deleted', 'success')
         return redirect(url_for('dashboard'))
     else:
         error = 'Please Log In'
@@ -341,6 +374,7 @@ def studentlogin():
     form = LoginForm(request.form)
     return render_template('studentlogin.html', title= 'Student Login', form=form)
 
+#Function is used to log students into the system for registering attendance for sessions
 @app.route('/test', methods=['POST'])
 def test():
     global lecture_IDENTITY
@@ -409,7 +443,7 @@ def submitattendance():
             except Exception as error:
                 error=('Unable to register attendance, contact IT support')
                 return render_template('index.html', title='Home', error=error)
-            flash('You have sucessfully registered for this lecture', 'success')
+            flash('You have sucessfully registered for this Session', 'success')
             return redirect(url_for('index'))
         else:
             error=('Unable to register attendance, contact IT support')

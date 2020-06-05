@@ -3,13 +3,15 @@
 <h2>Update Lecture</h2>
 <form action="" method="POST">
   <div style = font-size:20px; font-weight:bold; margin-left:150px;>
-            {{form.lecturename.label}} {{form.lecturename}}
+            {{form.session_name.label}} {{form.session_name}}
             <br>
-            {{form.lecturedate.label}} {{form.lecturedate}}
+            {{form.sessiondate.label}} {{form.sessiondate}}
             <br>
-            {{form.lecturetime.label}} {{form.lecturetime}}
+            {{form.sessiontime.label}} {{form.sessiontime}}
             <br>
-            {{form.lecturecode.label}} {{form.lecturecode(readonly=true)}}
+            {{form.sessiontype.label}} {{form.sessiontype}}
+            <br>
+            {{form.sessioncode.label}} {{form.sessioncode(readonly=true)}}
             <br>
             {{form.submit}}
          </div>

@@ -16,19 +16,20 @@ class LoginForm(Form):
     submit= SubmitField('Login')
 
 class NewLectureForm(Form):
-    lecturename = StringField('Lecture Name:', [validators.DataRequired()])
-    sessiondate = DateField('Lecture Date:', [validators.DataRequired()])
-    sessiontime = TimeField('Lecture Time:', [validators.DataRequired()])
-    lecturecode = StringField('Lecture Code:')
+    lecturename = StringField('Session Name:', [validators.DataRequired()])
+    sessiondate = DateField('Session Date:', [validators.DataRequired()])
+    sessiontime = TimeField('Session Time:', [validators.DataRequired()])
+    lecturecode = StringField('Session Code:')
     sessiontype = SelectField('Session Type:',choices=[('Lec','Lecture'), ('Sem','Seminar'),('Lab','Lab')])
-    submit = SubmitField('Create Lecture')
+    submit = SubmitField('Create Session')
 
 class UpdateLectureForm(Form):
-    lecturename = StringField('Lecture Name:', [validators.DataRequired()])
-    lecturedate = DateField('Lecture Date:', [validators.DataRequired()])
-    lecturetime = TimeField('Lecture Time:', [validators.DataRequired()])
-    lecturecode = StringField('Lecture Code:')
-    submit = SubmitField('Update Lecture')
+    session_name = StringField('Session Name:', [validators.DataRequired()])
+    sessiondate = DateField('Session Date:', [validators.DataRequired()])
+    sessiontime = TimeField('Session Time:', [validators.DataRequired()])
+    sessioncode = StringField('Session Code:')
+    sessiontype = SelectField('Session Type:',choices=[('Lec','Lecture'), ('Sem','Seminar'),('Lab','Lab')])
+    submit = SubmitField('Update Session')
 
 class StaffPersonalForm(Form):
     forename = StringField('Forename:', [validators.DataRequired()])

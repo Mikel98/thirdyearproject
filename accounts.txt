@@ -2,6 +2,9 @@ Student
 username:Ella
 password:test
 
+username:adam58
+password:johnson
+
 ADMIN
 username:michael
 password: test

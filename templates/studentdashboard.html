@@ -1,6 +1,14 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>Dashboard for {{session.username}}</h2>
+<div class="alert alert-info" role="alert">
+  Please ensure that personal details have been updated before using this system
+</div>
+
+<div class="card">
+  <div class="card-body">
+
+
+<h4>Dashboard for {{session.username}}</h4>
 <p>Below is a list of all your attendance records </p>
 
 <table class="table table-sm">
@@ -8,7 +16,7 @@
       <th>Lecture Name</th>
       <th>Lecture Date</th>
       <th>Lecture Time</th>
-      <th>Lecture Code</th>
+      <th>Lecture Mark</th>
       <th></th>
       <th></th>
       <th></th>
@@ -20,16 +28,9 @@
         <td>{{lectures[2]}}</td>
         <td>{{lectures[3]}}</td>
         <td>{{lectures[5]}}</td>
-        <td><a href="lecturecodes/{{lectures[4]}}" class="btn btn-secondary pullright">Display Codes</a></td>
-        <td><a href="viewfeedback/{{lectures[5]}}" class="btn btn-info">View Feedback</a></td>
-                <td><a href="viewattendance/{{lectures[4]}}" class="btn btn-info">View Attendance</a></td>
-        <td><a href="editlecture/{{lectures[4]}}" class="btn btn-primary pullright">Edit Lecture</a></td>
-        <td> <form action="{{url_for('deletelecture', id=lectures.id)}}" method="post">
-            <input type="hidden" name="_method" value="DELETE">
-            <input type="submit" value="Delete Lecture" class="btn btn-danger">
-          </form>
-        </td>
       </tr>
     {% endfor %}
   </table>
+  </div>
+  </div>
 {% endblock %}

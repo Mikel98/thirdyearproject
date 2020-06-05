@@ -1,7 +1,10 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>Register new Account</h2>
+<div class="card">
+  <div class="card-body">
+<h2>Register new account</h2>
+<p>Use the form below to create an account</p>
 <form action="/registeruser" method="POST">
     <div style = font-size:20px; font-weight:bold; margin-left:150px;>
               {{form.username.label}} {{form.username}}
@@ -17,4 +20,6 @@
 <p class="error"> <strong>Error:</strong>  {{ error }} </p>
 {% endif %}
 </form>
+  </div>
+</div>
 {% endblock %}

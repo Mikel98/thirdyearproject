@@ -38,9 +38,9 @@
                 <td>{{lectures[5]}}</td>
                 <td><a href="lecturecodes/{{lectures[0]}}" class="btn btn-secondary pullright">Display Codes</a></td>
                 <td><a href="viewfeedback/{{lectures[5]}}" class="btn btn-info">View Feedback</a></td>
-                        <td><a href="viewattendance/{{lectures[0]}}" class="btn btn-info">View Attendance</a></td>
+                <td><a href="viewattendance/{{lectures[0]}}" class="btn btn-info">View Attendance</a></td>
                 <td><a href="editlecture/{{lectures[0]}}" class="btn btn-primary pullright">Edit Lecture</a></td>
-                <td> <form action="{{url_for('deletelecture', id=lectures.id)}}" method="post">
+                <td> <form action="{{url_for('deletelecture', id=lectures[0])}}" method="post">
                     <input type="hidden" name="_method" value="DELETE">
                     <input type="submit" value="Delete Lecture" class="btn btn-danger">
                   </form>
@@ -78,7 +78,7 @@
         <td><a href="editlecture/{{lectures[0]}}" class="btn btn-primary pullright">Edit Seminar</a></td>
         <td> <form action="{{url_for('deletelecture', id=lectures.id)}}" method="post">
             <input type="hidden" name="_method" value="DELETE">
-            <input type="submit" value="Delete Lecture" class="btn btn-danger">
+            <input type="submit" value="Delete Seminar" class="btn btn-danger">
           </form>
         </td>
       </tr>
@@ -112,10 +112,10 @@
         <td><a href="lecturecodes/{{lectures[0]}}" class="btn btn-secondary pullright">Display Codes</a></td>
         <td><a href="viewfeedback/{{lectures[5]}}" class="btn btn-info">View Feedback</a></td>
                 <td><a href="viewattendance/{{lectures[0]}}" class="btn btn-info">View Attendance</a></td>
-        <td><a href="editlecture/{{lectures[0]}}" class="btn btn-primary pullright">Edit Lecture</a></td>
+        <td><a href="editlecture/{{lectures[0]}}" class="btn btn-primary pullright">Edit Lab</a></td>
         <td> <form action="{{url_for('deletelecture', id=lectures.id)}}" method="post">
             <input type="hidden" name="_method" value="DELETE">
-            <input type="submit" value="Delete Lecture" class="btn btn-danger">
+            <input type="submit" value="Delete Lab" class="btn btn-danger">
           </form>
         </td>
       </tr>
@@ -124,14 +124,5 @@
   </div>
   </div>
   </div>
-
-
-
-
-
-
-
-
-
 
 {% endblock %}
