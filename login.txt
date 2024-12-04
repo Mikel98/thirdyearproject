@@ -1,2 +1,14 @@
+ADMIN ACCOUNT
 username:michael
 password:test
+
+STAFF ACCOUNT
+usename:paul
+password:test123
+
+username:adam
+password:password
+
+STUDENT ACCOUNT
+username:steve
+password:test123

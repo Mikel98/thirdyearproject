@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+{% for attendance in data %}
+<h1>Students in attendance of lecture:{{attendance[0]}}</h1>
+<table class="table table-striped">
+    <tr>
+      <th>Lecture ID</th>
+      <th>Student Name</th>
+      <th>Mark</th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+      <tr>
+        <td>{{attendance[0]}}</td>
+        <td>{{attendance[1]}}</td>
+        <td>{{attendance[2]}}</td>
+      </tr>
+      {% endfor %}
+</table>
+{% endblock %}

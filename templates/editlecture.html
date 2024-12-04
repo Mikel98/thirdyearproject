@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>Create new lecture</h2>
+<h2>Update Lecture</h2>
 <form action="" method="POST">
   <div style = font-size:20px; font-weight:bold; margin-left:150px;>
             {{form.lecturename.label}} {{form.lecturename}}
@@ -8,6 +8,8 @@
             {{form.lecturedate.label}} {{form.lecturedate}}
             <br>
             {{form.lecturetime.label}} {{form.lecturetime}}
+            <br>
+            {{form.lecturecode.label}} {{form.lecturecode(readonly=true)}}
             <br>
             {{form.submit}}
          </div>

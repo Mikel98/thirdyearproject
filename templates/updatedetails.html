@@ -1,14 +1,16 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>Register new Account</h2>
-<form action="/registeruser" method="POST">
+<h2>Login</h2>
+<form action="/staffdetailspush" method="POST">
     <div style = font-size:20px; font-weight:bold; margin-left:150px;>
-              {{form.username.label}} {{form.username}}
+              {{form.forename.label}} {{form.forename}}
               <br>
-              {{form.password.label}} {{form.password}}
+              {{form.surname.label}} {{form.surname}}
               <br>
-              {{form.confirmpassword.label}} {{form.confirmpassword}}
+              {{form.email.label}} {{form.email}}
+              <br>
+              {{form.faculty.label}} {{form.faculty}}
               <br>
               {{form.submit}}
            </div>
